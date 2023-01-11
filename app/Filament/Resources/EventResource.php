@@ -12,6 +12,8 @@ use Filament\Resources\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Models\User;
+
 
 class EventResource extends Resource
 {
@@ -31,12 +33,22 @@ class EventResource extends Resource
                     ->label('Date & Time'),
                 Forms\Components\Select::make('Status')
                     ->required()
-                    ->options(Event::statusOption()),
+                    ->options(Event::statusOption())
+                    ->default(Event::PENDING)
+                    ->disabled(auth()->user()->isNotAdmin()),
                 Forms\Components\FileUpload::make('poster')
                     ->image()
                     ->directory('event-poster'),
+                Forms\Components\Select::make('user_id')
+                    ->required()
+                    ->searchable()
+                    ->options(User::getUserOption())
+                    ->label('Organizer')
+                    ->default(auth()->id())
+                    ->disabled(auth()->user()->isNotAdmin()),
             ]);
     }
+
 
     public static function table(Table $table): Table
     {
@@ -44,7 +56,8 @@ class EventResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name'),
                 Tables\Columns\TextColumn::make('datetime'),
-                Tables\Columns\TextColumn::make('status_name')->label('Status')
+                Tables\Columns\TextColumn::make('status_name')->label('Status'),
+                Tables\Columns\TextColumn::make('organizer_name')->label('Organizer')
             ])
             ->filters([
                 //
@@ -60,7 +73,7 @@ class EventResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\EventParticipantsRelationManager::class,
         ];
     }
     
@@ -72,4 +85,18 @@ class EventResource extends Resource
             'edit' => Pages\EditEvent::route('/{record}/edit'),
         ];
     }    
+
+    public static function getEloquentQuery(): Builder
+    {
+        $not_admin=auth()->user()->isNotAdmin();
+        return parent::getEloquentQuery()
+            ->withoutGlobalScopes()
+            ->when($not_admin,function($query){
+
+                $query->where('user_id', auth()->id());
+            });
+            
+    }
+
+
 }

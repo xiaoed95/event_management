@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\User;
+use Carbon\Carbon;
 
 class Event extends Model
 {
@@ -14,7 +16,8 @@ class Event extends Model
         'venue',
         'datetime',
         'Status',
-        'poster'
+        'poster',
+        'user_id'
     ];
 
     const PENDING=1;
@@ -37,6 +40,39 @@ class Event extends Model
         return Attribute::make(
             get: fn($value, $attributes) => self::statusOption()[$attributes['Status']],
         );
+    }
+    
+    public function organizer()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+
+    }
+
+    public function getOrganizerNameAttribute()
+    {
+        return $this->organizer?->name;
+    }
+
+    public function eventparticipants()
+    {
+        return $this->belongsToMany(User::class,'event_participants', 'event_id', 'user_id');
+    }
+    public function isApproved()
+    {
+        return $this->Status == self::APPROVED;
+    }
+
+    public function isExpired()
+    {
+        if (is_null($this->datetime)) {
+            return true;
+        }
+        $date = Carbon::parse($this->datetime);
+        if ($date->isPast()) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
 

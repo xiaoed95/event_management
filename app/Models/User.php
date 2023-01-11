@@ -9,6 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Filament\Models\Contracts\FilamentUser;
+use App\Models\Event;
 
 class User extends Authenticatable implements FilamentUser
 {
@@ -85,7 +86,21 @@ class User extends Authenticatable implements FilamentUser
         return $this->role != self::ADMIN;
     }
 
+    public function isOrganizer(){
+        return $this->role == self::ORGANIZER;
+    }
+
     public function isAdmin(){
         return $this->role == self::ADMIN;
+    }
+
+    public static function getUserOption()
+    {
+      return  User::select('id','name')->get()->pluck('name','id');
+    }
+
+    public function participatedEvents()
+    {
+        return $this->belongsToMany(Event::class,'event_participants', 'user_id', 'event_id');
     }
 }
