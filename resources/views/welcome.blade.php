@@ -53,7 +53,11 @@
                         @forelse($events as $event)
                         <div>
                             <!-- img -->
-                            <img src="https://i.pinimg.com/originals/19/b6/e1/19b6e11237c62e30a0ba84d8aade6b87.jpg" alt="" srcset="" />
+                            @if (!is_null($event->poster))
+                            <img class="object-contain h-72 w-60 " src="{{ asset('storage/' . $event->poster)}}" />
+                            @else
+                            <img class="object-contain h-72 w-60" src="https://www.movienewz.com/img/films/poster-holder.jpg" alt="" srcset="" />
+                            @endif
                             <div class="flex justify-between p-1">
                                 <div>
                                     <div>

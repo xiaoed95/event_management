@@ -74,6 +74,12 @@ class Event extends Model
             return false;
         }
     }
+    
+    public function scopeApproved($query)
+    {
+        return $query->where('Status',Event::APPROVED); // added
+    }
+
 }
 
 

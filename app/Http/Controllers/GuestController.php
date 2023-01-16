@@ -8,7 +8,7 @@ use App\Models\Event;
 class GuestController extends Controller
 {
     public function events() {
-        $events = Event::latest('datetime')->get();
+        $events = Event::approved()->latest('datetime')->get(); //added approved function and scope from readibility
         return view('welcome', [
             'events' => $events
         ]);
